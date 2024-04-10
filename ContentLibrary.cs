@@ -18,17 +18,17 @@ namespace ContentLibrary
 
         private static void OnLobbyEntered()
         {
-            CLogger.SendLog($"Lobby joined, temporary event list count: {TemporaryEventList.Count}, list: {TemporaryEventList}", "LogDebug");
+            CLogger.LogDebug($"Lobby joined, temporary event list count: {TemporaryEventList.Count}");
             if (MyceliumNetwork.IsHost)
             {
                 for (var index = 0; index < TemporaryEventList.Count; index++)
                 {
-                    // Game's base IDs go from 1000 ~ 1030 so we start from 2000!
-                    CLogger.SendLog($"Added ContentEvent index {index}", "LogDebug");
+                    // Game's base IDs go from 1000 ~ 1030 so we start from 2000!  
                     ContentEvent contentEvent = TemporaryEventList[index];
                     EventList.Add(contentEvent);
                     ushort id = (ushort)(2000 + EventList.Count);
-                    MyceliumNetwork.SetLobbyData("ContentLibrary_" + nameof(contentEvent), id);
+                    CLogger.LogDebug($"Added ContentEvent index {index}, type name {contentEvent.GetType().Name}");
+                    MyceliumNetwork.SetLobbyData("ContentLibrary_" + contentEvent.GetType().Name, id);
                 }
                 return;
             }
@@ -36,7 +36,7 @@ namespace ContentLibrary
             for (var index = 0; index < TemporaryEventList.Count; index++)
             {
                 ContentEvent contentEvent = TemporaryEventList[index];
-                ushort id = MyceliumNetwork.GetLobbyData<ushort>("ContentLibrary_" + nameof(contentEvent));
+                ushort id = MyceliumNetwork.GetLobbyData<ushort>("ContentLibrary_" + contentEvent.GetType().Name);
                 EventList[id - 2000] = contentEvent;
             }
         }
@@ -57,7 +57,7 @@ namespace ContentLibrary
         public static void AssignEvent(ContentEvent contentEvent) 
         {
             // We probably don't need this if every mod assigns an event at the same time, but this is just a guarantee
-            MyceliumNetwork.RegisterLobbyDataKey("ContentLibrary_" + nameof(contentEvent));
+            MyceliumNetwork.RegisterLobbyDataKey("ContentLibrary_" + contentEvent.GetType().Name);
             // Holds the contentEvents in any order, technically not needed if we're the host but I don't know I'd handle that
             TemporaryEventList.Add(contentEvent);
         }
@@ -70,7 +70,7 @@ namespace ContentLibrary
 
         public static ContentProvider GetContentProviderFromName(string contentProviderName)
         {
-            return ProviderList.Find(match => nameof(match) == contentProviderName);
+            return ProviderList.Find(match => match.GetType().Name == contentProviderName);
         }
 
         // From prior testing I'm sure only the camera man needs to create the provider
@@ -84,21 +84,21 @@ namespace ContentLibrary
 
             if (player.IsLocal)
             {
-                CLogger.SendLog("Local player is the one holding the camera, creating provider...", "LogDebug");
+                CLogger.LogDebug("Local player is the one holding the camera, creating provider...");
 
                 ContentPolling.contentProviders.Add(componentInParent, 1);
             }
             else
             {
-                CLogger.SendLog("Local player is not the one holding the camera", "LogDebug");
+                CLogger.LogDebug("Local player is not the one holding the camera");
                 CSteamID steamID;
                 bool idSuccess = SteamAvatarHandler.TryGetSteamIDForPlayer(player, out steamID);
                 if (idSuccess == false) {
-                    CLogger.SendLog("Got steamID successfully", "LogDebug");
+                    CLogger.LogDebug("Got steamID successfully");
                     return; 
                 }
                 
-                MyceliumNetwork.RPCTarget(ContentPlugin.modID, nameof(ReplicateThinAirProvider), steamID, ReliableType.Reliable, (nameof(contentProvider), arguments));
+                MyceliumNetwork.RPCTarget(ContentPlugin.modID, nameof(ReplicateThinAirProvider), steamID, ReliableType.Reliable, (contentProvider.GetType().Name, arguments));
                 ContentPolling.contentProviders.Add(componentInParent, 1); // Just to make sure we still create a provider
             }
             
@@ -112,7 +112,7 @@ namespace ContentLibrary
         public static void AddAndReplicateProvider(ContentProvider contentProvider, GameObject gameObject, object[] arguments)
         {
             gameObject.AddComponent(contentProvider.GetType());
-            MyceliumNetwork.RPC(ContentPlugin.modID, nameof(ReplicateThinAirProvider), ReliableType.Reliable, (nameof(contentProvider), arguments));
+            MyceliumNetwork.RPC(ContentPlugin.modID, nameof(ReplicateThinAirProvider), ReliableType.Reliable, (contentProvider.GetType().Name, arguments));
         }
 
         private static void ReplicateAddProvider(string contentProviderName, GameObject gameObject, object[] arguments)
