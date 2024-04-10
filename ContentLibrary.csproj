@@ -42,6 +42,7 @@
         viewing Private Information in stack traces.
         -->
         <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+        <BaseOutputPath>bin\</BaseOutputPath>
     </PropertyGroup>
 
     <!-- Primary Package References -->

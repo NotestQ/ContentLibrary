@@ -39,6 +39,7 @@ namespace ContentLibrary
             }
         }
 
+        // Call this on your content event's GetID
         public static ushort GetEventID(string contentEventName)
         {
             return (ushort)EventList.FindIndex(match => nameof(match) == contentEventName);
@@ -50,7 +51,7 @@ namespace ContentLibrary
         }
 
         // From prior testing I'm sure only the camera man needs to create the provider
-        public static void CreateThinAirProvider(ContentProvider contentProvider, object[] arguments)
+        public static void CreateThinAirProvider(ContentProvider contentProvider, params object[] arguments)
         {
             var player = GetPlayerWithCamera();
 
@@ -98,7 +99,7 @@ namespace ContentLibrary
         */
 
         [CustomRPC]
-        private static void ReplicateThinAirProvider(string contentProviderName, object[] arguments)
+        private static void ReplicateThinAirProvider(string contentProviderName, params object[] arguments)
         {
             ContentProvider contentProvider = GetContentProviderFromName(contentProviderName);
             var componentInParent = (ContentProvider)Activator.CreateInstance(contentProvider.GetType(), arguments);
