@@ -12,9 +12,10 @@ namespace ContentLibrary.Patches
     {
         [HarmonyPrefix]
         [HarmonyPatch(nameof(ContentEventIDMapper.GetContentEvent))]
-        public static bool GetContentEventPrefix(ushort id, ref ContentEvent __result)
+        public static bool GetContentEventPrefix(ref ushort id, ref ContentEvent __result)
         {
-            ContentEvent? contentEvent = ContentLibrary.EventList[id];
+            CLogger.SendLog($"GetContentEvent was called: {id} Normalized: {id - 2000} EventList count: {ContentLibrary.EventList.Count}", "LogDebug");
+            ContentEvent? contentEvent = ContentLibrary.EventList[id - 2000];
             if (contentEvent == null) return true;
 
             __result = (ContentEvent)Activator.CreateInstance(contentEvent.GetType());

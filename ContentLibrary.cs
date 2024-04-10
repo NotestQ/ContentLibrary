@@ -14,35 +14,58 @@ namespace ContentLibrary
         public static List<ContentEvent> EventList = new List<ContentEvent>();
         public static List<ContentProvider> ProviderList = new List<ContentProvider>();
 
+        public static List<ContentEvent> TemporaryEventList = new List<ContentEvent>();
+
+        private static void OnLobbyEntered()
+        {
+            CLogger.SendLog($"Lobby joined, temporary event list count: {TemporaryEventList.Count}, list: {TemporaryEventList}", "LogDebug");
+            if (MyceliumNetwork.IsHost)
+            {
+                for (var index = 0; index < TemporaryEventList.Count; index++)
+                {
+                    // Game's base IDs go from 1000 ~ 1030 so we start from 2000!
+                    CLogger.SendLog($"Added ContentEvent index {index}", "LogDebug");
+                    ContentEvent contentEvent = TemporaryEventList[index];
+                    EventList.Add(contentEvent);
+                    ushort id = (ushort)(2000 + EventList.Count);
+                    MyceliumNetwork.SetLobbyData("ContentLibrary_" + nameof(contentEvent), id);
+                }
+                return;
+            }
+
+            for (var index = 0; index < TemporaryEventList.Count; index++)
+            {
+                ContentEvent contentEvent = TemporaryEventList[index];
+                ushort id = MyceliumNetwork.GetLobbyData<ushort>("ContentLibrary_" + nameof(contentEvent));
+                EventList[id - 2000] = contentEvent;
+            }
+        }
+
+        // Call this on Awake() before Assign methods
+        public static void Main()
+        {
+            MyceliumNetwork.LobbyEntered += OnLobbyEntered;
+        }
+
+        // Call this on Awake()
         public static void AssignProvider(ContentProvider contentProvider)
         {
             ProviderList.Add(contentProvider);
         }
 
-        public static ushort AssignEvent(ContentEvent contentEvent) // Call this on Awake() by the way
+        // Call this on Awake()
+        public static void AssignEvent(ContentEvent contentEvent) 
         {
             // We probably don't need this if every mod assigns an event at the same time, but this is just a guarantee
             MyceliumNetwork.RegisterLobbyDataKey("ContentLibrary_" + nameof(contentEvent));
-            if (MyceliumNetwork.IsHost)
-            {
-                // Game's base IDs go from 1000 ~ 1030 so we start from 2000!
-                EventList.Add(contentEvent);
-                ushort id = (ushort)(2000 + EventList.Count);
-                MyceliumNetwork.SetLobbyData("ContentLibrary_" + nameof(contentEvent), id);
-                return id;
-            }
-            else
-            {
-                ushort id = MyceliumNetwork.GetLobbyData<ushort>("ContentLibrary_" + nameof(contentEvent));
-                EventList[id - 2000] = contentEvent;
-                return id;
-            }
+            // Holds the contentEvents in any order, technically not needed if we're the host but I don't know I'd handle that
+            TemporaryEventList.Add(contentEvent);
         }
 
         // Call this on your content event's GetID
         public static ushort GetEventID(string contentEventName)
         {
-            return (ushort)EventList.FindIndex(match => nameof(match) == contentEventName);
+            return (ushort)(2000 + EventList.FindIndex(match => match.GetType().Name == contentEventName));
         }
 
         public static ContentProvider GetContentProviderFromName(string contentProviderName)
