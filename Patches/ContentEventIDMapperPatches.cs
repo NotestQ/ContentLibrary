@@ -14,7 +14,9 @@ namespace ContentLibrary.Patches
         [HarmonyPatch(nameof(ContentEventIDMapper.GetContentEvent))]
         public static bool GetContentEventPrefix(ref ushort id, ref ContentEvent __result)
         {
-            CLogger.LogDebug($"GetContentEvent was called: {id} Normalized: {id - 2000} EventList count: {ContentLibrary.EventList.Count}");
+            CLogger.LogDebug($"GetContentEvent was called: {id} Normalized: {id - 2000} EventList count: {ContentLibrary.EventList!.Count}");
+            if (id - 2000 < 0) return true;
+
             ContentEvent? contentEvent = ContentLibrary.EventList[id - 2000];
             if (contentEvent == null) return true;
 

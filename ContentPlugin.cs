@@ -33,6 +33,7 @@ namespace ContentLibrary
             DebugState = DebugMode || ConfigDebugMode.Value;
 
             MyceliumNetwork.RegisterNetworkObject(this, modID);
+            MyceliumNetwork.LobbyEntered += ContentLibrary.OnLobbyEntered;
 
             Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
         }

@@ -11,14 +11,15 @@ namespace ContentLibrary
 {
     public static class ContentLibrary
     {
-        public static List<ContentEvent> EventList = new List<ContentEvent>();
+        public static List<ContentEvent>? EventList;
         public static List<ContentProvider> ProviderList = new List<ContentProvider>();
 
         public static List<ContentEvent> TemporaryEventList = new List<ContentEvent>();
 
-        private static void OnLobbyEntered()
+        public static void OnLobbyEntered()
         {
             CLogger.LogDebug($"Lobby joined, temporary event list count: {TemporaryEventList.Count}");
+            EventList = new List<ContentEvent>(TemporaryEventList.Count);
             if (MyceliumNetwork.IsHost)
             {
                 for (var index = 0; index < TemporaryEventList.Count; index++)
@@ -28,7 +29,7 @@ namespace ContentLibrary
                     EventList.Add(contentEvent);
                     ushort id = (ushort)(2000 + EventList.Count);
                     CLogger.LogDebug($"Added ContentEvent index {index}, type name {contentEvent.GetType().Name}");
-                    MyceliumNetwork.SetLobbyData("ContentLibrary_" + contentEvent.GetType().Name, id);
+                    MyceliumNetwork.SetLobbyData("ContentLibrary_" + contentEvent.GetType().Name, id);           
                 }
                 return;
             }
@@ -39,12 +40,6 @@ namespace ContentLibrary
                 ushort id = MyceliumNetwork.GetLobbyData<ushort>("ContentLibrary_" + contentEvent.GetType().Name);
                 EventList[id - 2000] = contentEvent;
             }
-        }
-
-        // Call this on Awake() before Assign methods
-        public static void Main()
-        {
-            MyceliumNetwork.LobbyEntered += OnLobbyEntered;
         }
 
         // Call this on Awake()
@@ -65,7 +60,7 @@ namespace ContentLibrary
         // Call this on your content event's GetID
         public static ushort GetEventID(string contentEventName)
         {
-            return (ushort)(2000 + EventList.FindIndex(match => match.GetType().Name == contentEventName));
+            return (ushort)(2000 + EventList!.FindIndex(match => match.GetType().Name == contentEventName));
         }
 
         public static ContentProvider GetContentProviderFromName(string contentProviderName)
@@ -94,9 +89,9 @@ namespace ContentLibrary
                 CSteamID steamID;
                 bool idSuccess = SteamAvatarHandler.TryGetSteamIDForPlayer(player, out steamID);
                 if (idSuccess == false) {
-                    CLogger.LogDebug("Got steamID successfully");
                     return; 
                 }
+                CLogger.LogDebug("Got steamID successfully");
                 
                 MyceliumNetwork.RPCTarget(ContentPlugin.modID, nameof(ReplicateThinAirProvider), steamID, ReliableType.Reliable, (contentProvider.GetType().Name, arguments));
                 ContentPolling.contentProviders.Add(componentInParent, 1); // Just to make sure we still create a provider
