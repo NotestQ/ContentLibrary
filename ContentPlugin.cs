@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using MyceliumNetworking;
+using System;
 using System.Collections.Generic;
 
 namespace ContentLibrary
@@ -36,6 +37,23 @@ namespace ContentLibrary
             MyceliumNetwork.LobbyEntered += ContentLibrary.OnLobbyEntered;
 
             Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
+        }
+
+        public static void RPC(string methodName, string contentProviderName, params object[] args)
+        {
+            foreach (var arg in args)
+            {
+                CLogger.LogDebug($"{arg.GetType()}");
+            }
+            MyceliumNetwork.RPC(modID, methodName, ReliableType.Reliable, contentProviderName, args);
+        }
+
+        [CustomRPC]
+        private void ReplicateThinAirProvider(string contentProviderName, params object[] arguments)
+        {
+            ContentProvider contentProvider = ContentLibrary.GetContentProviderFromName(contentProviderName);
+            var componentInParent = (ContentProvider)Activator.CreateInstance(contentProvider.GetType(), arguments);
+            ContentPolling.contentProviders.Add(componentInParent, 1);
         }
 
         internal static void Patch()

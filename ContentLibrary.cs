@@ -93,7 +93,7 @@ namespace ContentLibrary
                 }
                 CLogger.LogDebug("Got steamID successfully");
                 
-                MyceliumNetwork.RPCTarget(ContentPlugin.modID, nameof(ReplicateThinAirProvider), steamID, ReliableType.Reliable, (contentProvider.GetType().Name, arguments));
+                MyceliumNetwork.RPCTarget(ContentPlugin.modID, "ReplicateThinAirProvider", steamID, ReliableType.Reliable, contentProvider.GetType().Name, arguments);
                 ContentPolling.contentProviders.Add(componentInParent, 1); // Just to make sure we still create a provider
             }
             
@@ -115,14 +115,6 @@ namespace ContentLibrary
             
         }
         */
-
-        [CustomRPC]
-        private static void ReplicateThinAirProvider(string contentProviderName, params object[] arguments)
-        {
-            ContentProvider contentProvider = GetContentProviderFromName(contentProviderName);
-            var componentInParent = (ContentProvider)Activator.CreateInstance(contentProvider.GetType(), arguments);
-            ContentPolling.contentProviders.Add(componentInParent, 1);
-        }
 
         internal static Photon.Realtime.Player? GetPlayerWithCamera()
         {
