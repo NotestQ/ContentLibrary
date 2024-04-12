@@ -11,12 +11,17 @@ namespace ContentLibrary
 {
     public static class ContentLibrary
     {
-        public static List<ContentEvent>? EventList;
-        public static List<ContentProvider> ProviderList = new List<ContentProvider>();
+        #region Main
 
+        public static List<ContentEvent>? EventList;
+        // Holds what events should be assigned or synced until you enter a lobby
         public static List<ContentEvent> TemporaryEventList = new List<ContentEvent>();
 
-        public static void OnLobbyEntered()
+        /*
+         * If player is the host this method assings events IDs and syncs them with the lobby data
+         * Otherwise, this method gets the events IDs from the lobby data
+         */
+        internal static void OnLobbyEntered()
         {
             CLogger.LogDebug($"Lobby joined, temporary event list count: {TemporaryEventList.Count}");
             EventList = new List<ContentEvent>(TemporaryEventList.Count);
@@ -28,8 +33,8 @@ namespace ContentLibrary
                     ContentEvent contentEvent = TemporaryEventList[index];
                     EventList.Add(contentEvent);
                     ushort id = (ushort)(2000 + EventList.Count);
-                    CLogger.LogDebug($"Added ContentEvent index {index}, type name {contentEvent.GetType().Name}");
-                    MyceliumNetwork.SetLobbyData("ContentLibrary_" + contentEvent.GetType().Name, id);           
+                    CLogger.LogDebug($"Added ContentEvent index {index}, type name {contentEvent.GetType().Name}, id {id}");
+                    MyceliumNetwork.SetLobbyData("ContentLibrary_" + contentEvent.GetType().Name, id);
                 }
                 return;
             }
@@ -38,22 +43,17 @@ namespace ContentLibrary
             {
                 ContentEvent contentEvent = TemporaryEventList[index];
                 ushort id = MyceliumNetwork.GetLobbyData<ushort>("ContentLibrary_" + contentEvent.GetType().Name);
+                CLogger.LogDebug($"Added ContentEvent index {index}, type name {contentEvent.GetType().Name}, id {id}");
                 EventList[id - 2000] = contentEvent;
             }
         }
 
         // Call this on Awake()
-        public static void AssignProvider(ContentProvider contentProvider)
-        {
-            ProviderList.Add(contentProvider);
-        }
-
-        // Call this on Awake()
-        public static void AssignEvent(ContentEvent contentEvent) 
+        public static void AssignEvent(ContentEvent contentEvent)
         {
             // We probably don't need this if every mod assigns an event at the same time, but this is just a guarantee
             MyceliumNetwork.RegisterLobbyDataKey("ContentLibrary_" + contentEvent.GetType().Name);
-            // Holds the contentEvents in any order, technically not needed if we're the host but I don't know I'd handle that
+            // Holds the contentEvents in any order, unsynced
             TemporaryEventList.Add(contentEvent);
         }
 
@@ -63,14 +63,46 @@ namespace ContentLibrary
             return (ushort)(2000 + EventList!.FindIndex(match => match.GetType().Name == contentEventName));
         }
 
+        public static Photon.Realtime.Player? GetPlayerWithCamera()
+        {
+            foreach (var player in PhotonNetwork.PlayerList)
+            {
+                if (!GlobalPlayerData.TryGetPlayerData(player, out var globalPlayerData)) continue;
+
+                if (globalPlayerData.inventory.GetItems().Any(item => item.item.name == "Camera"))
+                {
+                    return player;
+                }
+            }
+
+            return null;
+        }
+
+        #endregion
+
+        #region Extras
+
+        public static List<ContentProvider> ProviderList = new List<ContentProvider>();
+
+        // Call this on Awake() if you want this library to handle provider construction and replication
+        public static void AssignProvider(ContentProvider contentProvider)
+        {
+            ProviderList.Add(contentProvider);
+        }
+
         public static ContentProvider GetContentProviderFromName(string contentProviderName)
         {
             return ProviderList.Find(match => match.GetType().Name == contentProviderName);
         }
 
-        // From prior testing I'm sure only the camera man needs to create the provider
-        public static void CreateThinAirProvider(ContentProvider contentProvider, params object[] arguments)
+        /*
+         * This handles polling a provider and replicating it to you, it makes heavy use of the Activator() and writes your arguments
+         * to a buffer so it can go through an RPC. *This CAN be done better if you do it yourself* as you'd know exactly what
+         * arguments you want to pass to your provider, however if you don't really care this is perfect for you!
+         */
+        public static void PollAndReplicateProvider(ContentProvider contentProvider, params object[] arguments)
         {
+            // From prior testing I'm sure only the camera man needs to create the provider
             var player = GetPlayerWithCamera();
 
             if (player == null) return;
@@ -86,15 +118,18 @@ namespace ContentLibrary
             else
             {
                 CLogger.LogDebug("Local player is not the one holding the camera");
+
                 CSteamID steamID;
                 bool idSuccess = SteamAvatarHandler.TryGetSteamIDForPlayer(player, out steamID);
                 if (idSuccess == false) {
                     return; 
                 }
+
                 CLogger.LogDebug("Got steamID successfully");
-                
-                MyceliumNetwork.RPCTarget(ContentPlugin.modID, "ReplicateThinAirProvider", steamID, ReliableType.Reliable, contentProvider.GetType().Name, arguments);
-                ContentPolling.contentProviders.Add(componentInParent, 1); // Just to make sure we still create a provider
+
+                ContentPlugin.RPCTargetRelay("ReplicatePollProvider", steamID, contentProvider.GetType().Name, arguments);
+                // Just to make sure, we still poll a provider, yes this is dumb but I have yet to test it without this
+                ContentPolling.contentProviders.Add(componentInParent, 1);
             }
             
         }
@@ -115,20 +150,6 @@ namespace ContentLibrary
             
         }
         */
-
-        internal static Photon.Realtime.Player? GetPlayerWithCamera()
-        {
-            foreach (var player in PhotonNetwork.PlayerList)
-            {
-                if (!GlobalPlayerData.TryGetPlayerData(player, out var globalPlayerData)) continue;
-
-                if (globalPlayerData.inventory.GetItems().Any(item => item.item.name == "Camera"))
-                {
-                    return player;
-                }
-            }
-
-            return null;
-        }
+        #endregion
     }
 }
