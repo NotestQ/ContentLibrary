@@ -96,7 +96,7 @@ namespace ContentLibrary
         }
 
         /*
-         * This handles polling a provider and replicating it to you, it makes heavy use of the Activator() and writes your arguments
+         * This handles polling a provider and replicating it for you, it makes heavy use of the Activator() and writes your arguments
          * to a buffer so it can go through an RPC. *This CAN be done better if you do it yourself* as you'd know exactly what
          * arguments you want to pass to your provider, however if you don't really care this is perfect for you!
          */
