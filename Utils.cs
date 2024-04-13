@@ -1,5 +1,4 @@
-﻿using ContentLibrary;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace ContentLibrary;
 

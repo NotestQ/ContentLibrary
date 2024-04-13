@@ -1,9 +1,5 @@
-﻿using ContentLibrary;
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Text;
 
 namespace ContentLibrary.Patches
 {
