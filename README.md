@@ -7,7 +7,7 @@ Download the [latest dll](https://github.com/NotestQ/releases/latest) from the r
 public class YourMod : BaseUnityPlugin { // ...
 ```  
 
-And for in-depth documentation, check out the [library documentation (not done yet)](https://github.com/NotestQ/ContentLibrary/wiki/Library-Documentation) or [the demo (not out yet, redirects to main repo)](https://github.com/NotestQ/ContentLibrary)!  
+And for in-depth documentation, check out the [library documentation](https://github.com/NotestQ/ContentLibrary/wiki/Library-Documentation) or one of the demos! Demos available are the [manual replication branch](https://github.com/NotestQ/KeypressEvent-LibraryDemo/tree/master) and the [quick replication branch](https://github.com/NotestQ/KeypressEvent-LibraryDemo/tree/feat_QuickReplication)
 
 ## Does this add something?
 By itself, no — this is a library for mod developers to avoid conflicts when making content events and optionally utilize helper methods the library provides.  
