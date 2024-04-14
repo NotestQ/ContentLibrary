@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using MyceliumNetworking;
 using Photon.Pun;
+using Sirenix.Serialization;
 using Steamworks;
+using UnityEngine.Rendering;
 
 namespace ContentLibrary
 {
@@ -15,10 +17,10 @@ namespace ContentLibrary
         // Holds what events should be assigned or synced until you enter a lobby
         public static List<ContentEvent> TemporaryEventList = new List<ContentEvent>();
 
-        /*
-         * If player is the host this method assings events IDs and syncs them with the lobby data
-         * Otherwise, this method gets the events IDs from the lobby data
-         */
+        /// <summary>
+        /// If player is the host this method assings events IDs and syncs them with the lobby data
+        /// Otherwise, this method gets the events IDs from the lobby data
+        /// </summary>
         internal static void OnLobbyEntered()
         {
             CLogger.LogDebug($"Lobby joined, temporary event list count: {TemporaryEventList.Count}");
@@ -46,7 +48,11 @@ namespace ContentLibrary
             }
         }
 
-        // Call this on Awake()
+        /// <summary>
+        /// Call this at your plugin's Awake() if you wish to use the library's ID management.
+        /// Assigns an ID to your ContentEvent automatically.
+        /// </summary>
+        /// <param name="contentEvent"></param>
         public static void AssignEvent(ContentEvent contentEvent)
         {
             // We probably don't need this if every mod assigns an event at the same time, but this is just a guarantee
@@ -55,12 +61,20 @@ namespace ContentLibrary
             TemporaryEventList.Add(contentEvent);
         }
 
-        // Call this on your content event's GetID
+        /// <summary>
+        /// On your ContentEvent's GetID() method you need to return GetEventID(NameOfYourContentEvent)
+        /// </summary>
+        /// <param name="contentEventName"></param>
+        /// <returns>Returns your event's automatically assigned ID for you.</returns>
         public static ushort GetEventID(string contentEventName)
         {
             return (ushort)(2000 + EventList!.FindIndex(match => match.GetType().Name == contentEventName));
         }
 
+        /// <summary>
+        /// Gets the player holding a camera.
+        /// </summary>
+        /// <returns>Returns a Photon.Realtime.Player if a player holding a camera is found.</returns>
         public static Photon.Realtime.Player? GetPlayerWithCamera()
         {
             foreach (var player in PhotonNetwork.PlayerList)
@@ -82,24 +96,37 @@ namespace ContentLibrary
 
         public static List<ContentProvider> ProviderList = new List<ContentProvider>();
 
-        // Call this on Awake() if you want this library to handle provider construction and replication
+        /// <summary>
+        /// At your plugin's awake, you need to assign each of your ContentProviders through the library if you wish to use the extra features
+        /// such as handle provider construction and replication.
+        /// </summary>
+        /// <param name="contentProvider"></param>
         public static void AssignProvider(ContentProvider contentProvider)
         {
             ProviderList.Add(contentProvider);
         }
 
+        /// <summary>
+        /// Gets a ContentProvider from the assigned provider list.
+        /// </summary>
+        /// <param name="contentProviderName"></param>
+        /// <returns>Returns a ContentProvider from their class name.</returns>
         public static ContentProvider GetContentProviderFromName(string contentProviderName)
         {
             return ProviderList.Find(match => match.GetType().Name == contentProviderName);
         }
-
-        /*
-         * This handles polling a provider and replicating it for you, it makes heavy use of the Activator() and writes your arguments
-         * to a buffer so it can go through an RPC. *This CAN be done better if you do it yourself* as you'd know exactly what
-         * arguments you want to pass to your provider, however if you don't really care this is perfect for you!
-         */
-        public static void PollAndReplicateProvider(ContentProvider contentProvider, params object[] arguments)
+        
+        /// <summary>
+        /// This handles polling a provider and replicating it for you, it makes heavy use of the Activator() and writes your arguments
+        /// to a buffer so it can go through an RPC. *This CAN be done better if you do it yourself* as you'd know exactly what
+        /// arguments you want to pass to your provider, however if you don't really care this is perfect for you!
+        /// </summary>
+        /// <param name="contentProvider"></param>
+        /// <param name="screenCoverage"></param>
+        /// <param name="arguments"></param>
+        public static void PollAndReplicateProvider(ContentProvider contentProvider, int screenCoverage = 400, params object[] arguments)
         {
+            // Maybe throw exception if we can't GetContentProviderFromName?
             // From prior testing I'm sure only the camera man needs to create the provider
             var player = GetPlayerWithCamera();
 
@@ -111,7 +138,7 @@ namespace ContentLibrary
             {
                 CLogger.LogDebug("Local player is the one holding the camera, creating provider...");
 
-                ContentPolling.contentProviders.Add(componentInParent, 1);
+                ContentPolling.contentProviders.Add(componentInParent, screenCoverage);
             }
             else
             {
@@ -125,9 +152,9 @@ namespace ContentLibrary
 
                 CLogger.LogDebug("Got steamID successfully");
 
-                ContentPlugin.RPCTargetRelay("ReplicatePollProvider", steamID, contentProvider.GetType().Name, arguments);
+                ContentPlugin.RPCTargetRelay("ReplicatePollProvider", steamID, contentProvider.GetType().Name, screenCoverage, arguments);
                 // Just to make sure, we still poll a provider, yes this is dumb but I have yet to test it without this
-                ContentPolling.contentProviders.Add(componentInParent, 1);
+                ContentPolling.contentProviders.Add(componentInParent, screenCoverage);
             }
             
         }
