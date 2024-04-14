@@ -37,7 +37,7 @@ namespace ContentLibrary
             DebugState = DebugMode || ConfigDebugMode.Value;
 
             MyceliumNetwork.RegisterNetworkObject(this, modID);
-            MyceliumNetwork.LobbyEntered += ContentLibrary.OnLobbyEntered;
+            MyceliumNetwork.LobbyEntered += ContentHandler.OnLobbyEntered;
 
             Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
         }
@@ -179,7 +179,7 @@ namespace ContentLibrary
                 iteration++;
             }
 
-            ContentProvider contentProvider = ContentLibrary.GetContentProviderFromName(contentProviderName);
+            ContentProvider contentProvider = ContentHandler.GetContentProviderFromName(contentProviderName);
             var componentInParent = (ContentProvider)Activator.CreateInstance(contentProvider.GetType(), arguments);
             ContentPolling.contentProviders.Add(componentInParent, 1);
         }

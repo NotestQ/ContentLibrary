@@ -7,7 +7,7 @@ using Steamworks;
 
 namespace ContentLibrary
 {
-    public static class ContentLibrary
+    public static class ContentHandler
     {
         #region Main
 
