@@ -1,7 +1,7 @@
 # ContentLibrary
 
 ## How do I use this
-Download the [latest dll](https://github.com/NotestQ/releases/latest) from the releases tab or clone and build the repo, then add it as a reference to the project. After adding it as a reference you can add it as a dependency:  
+Download the [latest dll](https://github.com/NotestQ/ContentLibrary/releases/latest) from the releases tab or clone and build the repo, then add it as a reference to the project. After adding it as a reference you can add it as a dependency:  
 ```cs
 [BepInDependency(ContentLibrary.MyPluginInfo.PLUGIN_GUID)] // Make sure to specify if it's a soft or a hard dependency! BepInEx sets dependencies to hard by default.
 public class YourMod : BaseUnityPlugin { // ...
