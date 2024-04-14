@@ -9,6 +9,9 @@ public class YourMod : BaseUnityPlugin { // ...
 
 And for in-depth documentation, check out the [library documentation](https://github.com/NotestQ/ContentLibrary/wiki/Library-Documentation) or one of the demos! Demos available are the [manual replication branch](https://github.com/NotestQ/KeypressEvent-LibraryDemo/tree/master) and the [quick replication branch](https://github.com/NotestQ/KeypressEvent-LibraryDemo/tree/feat_QuickReplication)
 
+## Dependencies
+This depends on [Mycelium](https://github.com/RugbugRedfern/Mycelium-Networking-For-Content-Warning)
+
 ## Does this add something?
 By itself, no — this is a library for mod developers to avoid conflicts when making content events and optionally utilize helper methods the library provides.  
 Though this does patch ContentEventIDMapper, so it might conflict with other Content Event mods that don't utilize the library (there is a 1 in 63535 chance one mod without a library would conflict with other content event mods per event added!)
