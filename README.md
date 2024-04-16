@@ -15,6 +15,9 @@ And for in-depth documentation, check out the [library documentation](https://gi
 ## Content class documentation
 If you're curious how the Content classes work, check out my [wiki for them](https://github.com/NotestQ/ContentLibrary/wiki/Content-Class-Documentation)!  
 
+### Credits
+[Steven4547466](https://github.com/steven4547466) helped to documentate the content class! If it wasn't for them I probably wouldn't have delved deeper into the code at the time that I did, they also did a lot of research themselves.
+
 ## Does this add something?
 By itself, no — this is a library for mod developers to avoid conflicts when making content events and optionally utilize helper methods the library provides.  
 Though this does patch ContentEventIDMapper, so it might conflict with other Content Event mods that don't utilize the library (there is a 1 in 63535 chance one mod without a library would conflict with other content event mods per event added!)
