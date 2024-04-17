@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mime;
 using MyceliumNetworking;
 using Photon.Pun;
-using Sirenix.Serialization;
 using Steamworks;
-using UnityEngine.Rendering;
 
 namespace ContentLibrary
 {
