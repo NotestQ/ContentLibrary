@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
 using MyceliumNetworking;
 using Photon.Pun;
 using Sirenix.Serialization;
@@ -32,18 +33,23 @@ namespace ContentLibrary
                     // Game's base IDs go from 1000 ~ 1030 so we start from 2000!  
                     ContentEvent contentEvent = TemporaryEventList[index];
                     EventList.Add(contentEvent);
-                    ushort id = (ushort)(2000 + EventList.Count);
+                    ushort id = (ushort)(1999 + EventList.Count);
                     CLogger.LogDebug($"Added ContentEvent index {index}, type name {contentEvent.GetType().Name}, id {id}");
                     MyceliumNetwork.SetLobbyData("ContentLibrary_" + contentEvent.GetType().Name, id);
                 }
                 return;
             }
 
+            for (var index = 0; index < TemporaryEventList.Count; index++) // This is scuffed. Sorry.
+            {
+                EventList.Add(new EmptyContentEvent());
+            }
+
             for (var index = 0; index < TemporaryEventList.Count; index++)
             {
                 ContentEvent contentEvent = TemporaryEventList[index];
                 ushort id = MyceliumNetwork.GetLobbyData<ushort>("ContentLibrary_" + contentEvent.GetType().Name);
-                CLogger.LogDebug($"Added ContentEvent index {index}, type name {contentEvent.GetType().Name}, id {id}");
+                CLogger.LogDebug($"Added ContentEvent, TemporaryEventList index {index}, type name {contentEvent.GetType().Name}, id {id}");
                 EventList[id - 2000] = contentEvent;
             }
         }
@@ -67,8 +73,18 @@ namespace ContentLibrary
         /// <param name="contentEventName"></param>
         /// <returns>Returns your event's automatically assigned ID for you.</returns>
         public static ushort GetEventID(string contentEventName)
-        {
-            return (ushort)(2000 + EventList!.FindIndex(match => match.GetType().Name == contentEventName));
+        {       
+            int foundIndex = EventList!.FindIndex(match => match.GetType().Name == contentEventName);
+            if (foundIndex == -1) 
+            {
+                for (var index = 0; index < EventList!.Count; index++)
+                {
+                    CLogger.LogDebug($"{EventList[index].GetType().Name}, {contentEventName}, {EventList[index].GetType().Name == contentEventName}");
+                }
+                CLogger.LogError($"GetEventID for {contentEventName} returned -1");
+            }
+
+            return (ushort)(2000 + foundIndex);
         }
 
         /// <summary>
