@@ -103,6 +103,43 @@ namespace ContentLibrary
             return null;
         }
 
+        /// <summary>
+        /// Polls manually making it easier to add the same event multiple times to the contentEvents list.
+        /// Exists because the amount of content events in the list matters, with at least 100 (representing 100 frames) to get the full score.
+        /// </summary>
+        /// <param name="contentProvider"></param>
+        /// <param name="screenCoverage"></param>
+        /// <param name="timesToPoll"></param>
+        internal static void ManualPoll(ContentProvider contentProvider, float screenCoverage = 1, int timesToPoll = 1)
+        {
+            if (ContentPolling.m_currentPollingCamera == null)
+            {
+                CLogger.LogDebug("ManualPoll could not carry out, camera is currently not polling.");
+                return;
+            }
+
+            for (int i = 0; i < timesToPoll; i++)
+            {
+                contentProvider.GetContent(ContentPolling.contentEvents, screenCoverage, ContentPolling.m_currentPollingCamera, ContentPolling.m_clipTime);
+            }
+        }
+
+        internal static void ManualPoll(ContentProvider contentProvider, int screenCoverage = 400, int timesToPoll = 1)
+        {
+            if (ContentPolling.m_currentPollingCamera == null)
+            {
+                CLogger.LogDebug("ManualPoll could not carry out, camera is currently not polling.");
+                return;
+            }
+
+            float seenAmount = (float)screenCoverage / 400f;
+
+            for (int i = 0; i < timesToPoll; i++)
+            {
+                contentProvider.GetContent(ContentPolling.contentEvents, seenAmount, ContentPolling.m_currentPollingCamera, ContentPolling.m_clipTime);
+            }
+        }
+
         #endregion
 
         #region Extras
@@ -128,7 +165,7 @@ namespace ContentLibrary
         {
             return ProviderList.Find(match => match.GetType().Name == contentProviderName);
         }
-        
+
         /// <summary>
         /// This handles polling a provider and replicating it for you, it makes heavy use of the Activator() and writes your arguments
         /// to a buffer so it can go through an RPC. *This CAN be done better if you do it yourself* as you'd know exactly what
@@ -137,7 +174,7 @@ namespace ContentLibrary
         /// <param name="contentProvider"></param>
         /// <param name="screenCoverage"></param>
         /// <param name="arguments"></param>
-        public static void PollAndReplicateProvider(ContentProvider contentProvider, int screenCoverage = 400, params object[] arguments)
+        public static void PollAndReplicateProvider(ContentProvider contentProvider, int screenCoverage = 400, int timesToPoll = 1, params object[] arguments)
         {
             // Maybe throw exception if we can't GetContentProviderFromName?
             // From prior testing I'm sure only the camera man needs to create the provider
@@ -146,12 +183,12 @@ namespace ContentLibrary
             if (player == null) return;
 
             var componentInParent = (ContentProvider)Activator.CreateInstance(contentProvider.GetType(), arguments);
-
+            
             if (player.IsLocal)
             {
                 CLogger.LogDebug("Local player is the one holding the camera, creating provider...");
 
-                ContentPolling.contentProviders.Add(componentInParent, screenCoverage);
+                ManualPoll(contentProvider, screenCoverage, timesToPoll);
             }
             else
             {
@@ -165,9 +202,9 @@ namespace ContentLibrary
 
                 CLogger.LogDebug("Got steamID successfully");
 
-                ContentPlugin.RPCTargetRelay("ReplicatePollProvider", steamID, contentProvider.GetType().Name, screenCoverage, arguments);
+                ContentPlugin.RPCTargetRelay("ReplicatePollProvider", steamID, contentProvider.GetType().Name, screenCoverage, timesToPoll, arguments);
                 // Just to make sure, we still poll a provider, yes this is dumb but I have yet to test it without this
-                ContentPolling.contentProviders.Add(componentInParent, screenCoverage);
+                ManualPoll(contentProvider, screenCoverage, timesToPoll);
             }
             
         }

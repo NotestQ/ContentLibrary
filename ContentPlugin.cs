@@ -44,7 +44,7 @@ namespace ContentLibrary
 
         #region Extras
 
-        public static void RPCTargetRelay(string methodName, CSteamID steamID, string contentProviderName, int screenCoverage, params object[] args)
+        public static void RPCTargetRelay(string methodName, CSteamID steamID, string contentProviderName, int screenCoverage, int timesToPoll, params object[] args)
         {
             var serializer = new TypeSerializer();
             string deserializationInfo = ""; // This is dumb, right?
@@ -114,7 +114,7 @@ namespace ContentLibrary
             ByteArrayConvertion.MoveToByteArray(ref infoBuffer, ref infoByteArray);
 
             CLogger.LogDebug($"Buffer type is {serializer.buffer.GetType()}, {byteArray.GetType()}");
-            MyceliumNetwork.RPCTarget(modID, methodName, steamID, ReliableType.Reliable, contentProviderName, screenCoverage, infoByteArray, byteArray);
+            MyceliumNetwork.RPCTarget(modID, methodName, steamID, ReliableType.Reliable, contentProviderName, screenCoverage, timesToPoll, infoByteArray, byteArray);
         }
 
         /*
@@ -123,7 +123,7 @@ namespace ContentLibrary
          * But what is a switch case if not a big dict am I right... (no)
          */
         [CustomRPC] 
-        private void ReplicatePollProvider(string contentProviderName, int screenCoverage, byte[] infoByteArray, byte[] byteArguments)
+        private void ReplicatePollProvider(string contentProviderName, int screenCoverage, int timesToPoll, byte[] infoByteArray, byte[] byteArguments)
         { 
             var infoDeserializer = new BinaryDeserializer(infoByteArray, Allocator.Persistent);
             var argumentDeserializer = new BinaryDeserializer(byteArguments, Allocator.Persistent);
@@ -181,7 +181,7 @@ namespace ContentLibrary
 
             ContentProvider contentProvider = ContentHandler.GetContentProviderFromName(contentProviderName);
             var componentInParent = (ContentProvider)Activator.CreateInstance(contentProvider.GetType(), arguments);
-            ContentPolling.contentProviders.Add(componentInParent, screenCoverage);
+            ContentHandler.ManualPoll(contentProvider, screenCoverage, timesToPoll);
         }
 
         #endregion
