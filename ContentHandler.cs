@@ -110,7 +110,7 @@ namespace ContentLibrary
         /// <param name="contentProvider"></param>
         /// <param name="screenCoverage"></param>
         /// <param name="timesToPoll"></param>
-        internal static void ManualPoll(ContentProvider contentProvider, float screenCoverage = 1, int timesToPoll = 1)
+        public static void ManualPoll(ContentProvider contentProvider, float screenCoverage = 1, int timesToPoll = 1)
         {
             if (ContentPolling.m_currentPollingCamera == null)
             {
@@ -124,7 +124,7 @@ namespace ContentLibrary
             }
         }
 
-        internal static void ManualPoll(ContentProvider contentProvider, int screenCoverage = 400, int timesToPoll = 1)
+        public static void ManualPoll(ContentProvider contentProvider, int screenCoverage = 400, int timesToPoll = 1)
         {
             if (ContentPolling.m_currentPollingCamera == null)
             {
