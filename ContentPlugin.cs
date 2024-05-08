@@ -38,6 +38,7 @@ namespace ContentLibrary
 
             MyceliumNetwork.RegisterNetworkObject(this, modID);
             MyceliumNetwork.LobbyEntered += ContentHandler.OnLobbyEntered;
+            MyceliumNetwork.LobbyLeft += ContentHandler.OnLobbyLeft;
 
             Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
         }
