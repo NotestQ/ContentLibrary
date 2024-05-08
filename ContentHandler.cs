@@ -52,15 +52,6 @@ namespace ContentLibrary
         }
 
         /// <summary>
-        /// Wipe EventList so we don't have duplicate events
-        /// </summary>
-        internal static void OnLobbyLeft() 
-        {
-            CLogger.LogDebug($"Cleared EventList");
-            EventList!.Clear();
-        }
-
-        /// <summary>
         /// Call this at your plugin's Awake() if you wish to use the library's ID management.
         /// Assigns an ID to your ContentEvent automatically.
         /// </summary>
