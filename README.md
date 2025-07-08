@@ -1,5 +1,6 @@
 # ContentLibrary
 Handles ID assignment, creation and replication of ContentProviders and ContentEvents for mod developers!  
+This is old, has smelly code, and is probably broken. If you want, look into porting it to use ConfigSync in the same manner ItemLibrary does.
 
 ## Dependencies
 This mod's only dependency is [Mycelium](https://github.com/RugbugRedfern/Mycelium-Networking-For-Content-Warning).  
